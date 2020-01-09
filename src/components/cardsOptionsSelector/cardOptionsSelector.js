@@ -1,5 +1,5 @@
 import React from 'react';
-import { Card, Input, Label, CardImg,  Row, Col, CardFooter } from 'reactstrap';
+import { Card, Input, Label, CardImg, Row, Col, CardFooter, CardImgOverlay, Badge } from 'reactstrap';
 import { getCardImageUrlFromJson } from '../../utils/cardJsonObjectDataExtraction'
 import { fetchCardsByOracleId } from './requests/cardOptionsSelectorRequests'
 import './cardOptionsSelector.css'
@@ -9,6 +9,7 @@ export class CardOptionsSelector extends React.Component {
     /**
      * @prop {string} props.oracleId - unique id of the card, see https://mtg.gamepedia.com/Oracle
      * @prop {string} props.lang   - desired output language, see https://scryfall.com/docs/api/languages
+     * @prop {string} quantity - number of copies of the card
      * 
      * @state {object} state -- 
      */
@@ -138,8 +139,8 @@ export class CardOptionsSelector extends React.Component {
     }
 
     onSetSelectorInputChange() {
-        this.avaliableLanguages = this.getNewAvaliableLanguages(this.state.cardsJson, 
-            this.setSelectorRef.current.value, 
+        this.avaliableLanguages = this.getNewAvaliableLanguages(this.state.cardsJson,
+            this.setSelectorRef.current.value,
             this.languageSelectorRef.current.value
         )
         this.updateCurrentSelectedCard()
@@ -150,6 +151,9 @@ export class CardOptionsSelector extends React.Component {
         return (
             <Card inverse>
                 <CardImg src={cardImageUrl} alt="Card image cap" />
+                <CardImgOverlay>
+                    <h1 body className="text-right"><Badge pill>X{this.props.quantity}</Badge></h1>
+                </CardImgOverlay>
                 <CardFooter>
                     <Row>
                         <Col xs='auto'>
