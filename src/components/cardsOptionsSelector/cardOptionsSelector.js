@@ -1,8 +1,7 @@
 import React from 'react';
-import { Card, Input, Label, Container, CardImg, CardImgOverlay, Row, Col, CardFooter } from 'reactstrap';
+import { Card, Input, Label, CardImg,  Row, Col, CardFooter } from 'reactstrap';
 import { getCardImageUrlFromJson } from '../../utils/cardJsonObjectDataExtraction'
 import { fetchCardsByOracleId } from './requests/cardOptionsSelectorRequests'
-import { getAvaliableLanguagesFromCardsJsonList, getAvaliableSetsFromCardsJsonList } from './cardOptionsSelectorUtils'
 import './cardOptionsSelector.css'
 
 export class CardOptionsSelector extends React.Component {
@@ -150,7 +149,7 @@ export class CardOptionsSelector extends React.Component {
         let cardImageUrl = getCardImageUrlFromJson(this.state.currentSelectedCard, "small")
         return (
             <Card inverse>
-                <CardImg width="100%" src={cardImageUrl} width='50px' alt="Card image cap" />
+                <CardImg width="100%" src={cardImageUrl} alt="Card image cap" />
                 <CardFooter>
                     <Row>
                         <Col xs='auto'>

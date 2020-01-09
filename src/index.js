@@ -1,6 +1,6 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import 'bootstrap/dist/css/bootstrap.min.css';
-import {MainPage} from './mainpage'
+import {ProxyMaker} from './proxyMaker'
 require('dotenv').config()
-ReactDOM.render(<MainPage />, document.getElementById('root'));
+ReactDOM.render(<ProxyMaker />, document.getElementById('root'));
