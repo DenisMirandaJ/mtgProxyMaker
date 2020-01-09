@@ -149,7 +149,7 @@ export class CardOptionsSelector extends React.Component {
         let cardImageUrl = getCardImageUrlFromJson(this.state.currentSelectedCard, "small")
         return (
             <Card inverse>
-                <CardImg width="100%" src={cardImageUrl} alt="Card image cap" />
+                <CardImg src={cardImageUrl} alt="Card image cap" />
                 <CardFooter>
                     <Row>
                         <Col xs='auto'>

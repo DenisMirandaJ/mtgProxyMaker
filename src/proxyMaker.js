@@ -1,5 +1,5 @@
 import React from 'react';
-import { Container, CardGroup, Input, Label, Button, CardColumns } from 'reactstrap'
+import { Container, CardGroup, Col, Row, Card, Input, Label, Button, CardColumns } from 'reactstrap'
 import Axios from 'axios'
 import { CardOptionsSelector } from './components/cardsOptionsSelector/cardOptionsSelector'
 import './css/proxyMaker.css'
@@ -49,34 +49,41 @@ export class ProxyMaker extends React.Component {
         let cardOptionsViewers = this.state.cardList.map((cardDic, index) => {
             return (
                 <CardOptionsSelector
-                    width='25%'
                     oracleId={cardDic['oracleId']}
                     lang={this.languageInput.current.value}
-                    key={index}
+                    class='cardOptionSelector'
                 />
             )
         })
 
-        return cardOptionsViewers
+        //Split the cards in chunks of size 'size
+        let arrays = [];
+        let size = 5
+        while (cardOptionsViewers.length > 0) {
+            arrays.push(cardOptionsViewers.splice(0, size))
+        }
 
-        // //Split the cards in chunks of size 4
-        // let arrays = [], size = 4;
-        // while (cardOptionsViewers.length > 0)
-        //     arrays.push(cardOptionsViewers.splice(0, size));
-
-        // let cardGroups = arrays.map((cardGroup, index) => {
-        //     return (
-        //         <CardGroup key={index}>
-        //             {cardGroup}
-        //         </CardGroup>
-        //     )
-        // })
-        // return cardGroups
+        let cardGroups = arrays.map( (cardGroup, index) => 
+        {
+            if (index == arrays.length - 1) {
+                if (cardGroup.length != size) {
+                    while (cardGroup.length != size) {
+                        cardGroup.push(<Card id='filler-card'></Card>)
+                    }
+                }
+            }
+            return (
+                <CardGroup>
+                    {cardGroup}
+                </CardGroup>
+            )
+        })
+        return cardGroups
     }
 
     render() {
         return (
-            <Container>
+            <Container style={{ width: '100%' }}>
                 <Label for="deckTextArea"><h2>Enter your decklist</h2></Label>
                 <Input
                     type="textarea"
@@ -116,9 +123,7 @@ export class ProxyMaker extends React.Component {
                     <option value='px'>Phyrexian</option>
                 </Input>
                 <Button color="primary" onClick={this.onDeckInputSubmit.bind(this)} block>Let's Proxy</Button>
-                <CardColumns>
-                    {this.getCardOptionsSelectorComponents()}
-                </CardColumns>
+                {this.getCardOptionsSelectorComponents()}
 
             </Container>
         )
