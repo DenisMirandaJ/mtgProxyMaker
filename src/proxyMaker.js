@@ -1,5 +1,5 @@
 import React from 'react';
-import { Container, CardGroup, Col, Row, Card, Input, Label, Button, CardColumns } from 'reactstrap'
+import { Container, CardGroup, Form, Card, Input, Label, Button } from 'reactstrap'
 import Axios from 'axios'
 import { CardOptionsSelector } from './components/cardsOptionsSelector/cardOptionsSelector'
 import './css/proxyMaker.css'
@@ -21,6 +21,7 @@ export class ProxyMaker extends React.Component {
 
 
     async getCardNamesQuantityDic(input) {
+        let quantity
         let dic = []
         let lines = input.split(/\r?\n/g)
         for (let i = 0; i < lines.length; i++) {
@@ -29,9 +30,15 @@ export class ProxyMaker extends React.Component {
                 continue
             }
             const response = await Axios.get('https://api.scryfall.com/cards/named?fuzzy=' + matches[3])
+            console.log(matches[1])
+            if (matches[1] === undefined || matches[1].match(/^\s+$/)) {
+                quantity = "1"
+            } else {
+                quantity = matches[1]
+            }
             dic.push({
                 oracleId: response['data']['oracle_id'],
-                quantity: matches[1]
+                quantity: quantity
             })
         }
 
@@ -51,6 +58,7 @@ export class ProxyMaker extends React.Component {
                 <CardOptionsSelector
                     oracleId={cardDic['oracleId']}
                     lang={this.languageInput.current.value}
+                    quantity={cardDic['quantity']}
                     class='cardOptionSelector'
                 />
             )
@@ -63,8 +71,7 @@ export class ProxyMaker extends React.Component {
             arrays.push(cardOptionsViewers.splice(0, size))
         }
 
-        let cardGroups = arrays.map( (cardGroup, index) => 
-        {
+        let cardGroups = arrays.map((cardGroup, index) => {
             if (index == arrays.length - 1) {
                 if (cardGroup.length != size) {
                     while (cardGroup.length != size) {
@@ -84,47 +91,51 @@ export class ProxyMaker extends React.Component {
     render() {
         return (
             <Container style={{ width: '100%' }}>
-                <Label for="deckTextArea"><h2>Enter your decklist</h2></Label>
-                <Input
-                    type="textarea"
-                    innerRef={this.deckInput}
-                    rows='17'
-                    noresize='true'
-                    placeholder={'4 shock\n3 x Dovin\'s Veto'}
-                    id="deckTextArea"
-                    autoFocus
-                />
-                <Label for='languageInput'>
-                    <span>
-                        Language <span className="text-muted">(not all cards are avaliable in every language)</span>
-                    </span>
-                </Label>
-                <Input
-                    type='select'
-                    innerRef={this.languageInput}
-                    id='languageInput'
-                >
-                    <option value='en'>English</option>
-                    <option value='es'>Spanish</option>
-                    <option value='fr'>French</option>
-                    <option value='de'>German</option>
-                    <option value='it'>Italian</option>
-                    <option value='pt'>Portuguese</option>
-                    <option value='ja'>Japanese</option>
-                    <option value='ko'>Korean</option>
-                    <option value='ru'>Russian</option>
-                    <option value='zhs'>Chinese Simplified</option>
-                    <option value='zht'>Chinese Traditional</option>
-                    <option value='he'>Hebrew</option>
-                    <option value='la'>Latin</option>
-                    <option value='grc'>Ancient Greek</option>
-                    <option value='ar'>Arabic</option>
-                    <option value='sa'>Sanskrit</option>
-                    <option value='px'>Phyrexian</option>
-                </Input>
-                <Button color="primary" onClick={this.onDeckInputSubmit.bind(this)} block>Let's Proxy</Button>
-                {this.getCardOptionsSelectorComponents()}
+                <Form id='deckInput'>
+                    <Label for="deckTextArea"><h3>Enter your decklist</h3></Label>
+                    <Input
+                        type="textarea"
+                        innerRef={this.deckInput}
+                        rows='17'
+                        noresize='true'
+                        placeholder={'4 shock\n3 x Dovin\'s Veto'}
+                        id="deckTextArea"
+                        autoFocus
+                    />
+                    <Label for='languageInput'>
+                        <span>
+                            Language <span className="text-muted">(not all cards are avaliable in every language)</span>
+                        </span>
+                    </Label>
+                    <Input
+                        type='select'
+                        innerRef={this.languageInput}
+                        id='languageInput'
+                    >
+                        <option value='en'>English</option>
+                        <option value='es'>Spanish</option>
+                        <option value='fr'>French</option>
+                        <option value='de'>German</option>
+                        <option value='it'>Italian</option>
+                        <option value='pt'>Portuguese</option>
+                        <option value='ja'>Japanese</option>
+                        <option value='ko'>Korean</option>
+                        <option value='ru'>Russian</option>
+                        <option value='zhs'>Chinese Simplified</option>
+                        <option value='zht'>Chinese Traditional</option>
+                        <option value='he'>Hebrew</option>
+                        <option value='la'>Latin</option>
+                        <option value='grc'>Ancient Greek</option>
+                        <option value='ar'>Arabic</option>
+                        <option value='sa'>Sanskrit</option>
+                        <option value='px'>Phyrexian</option>
+                    </Input>
+                    <Button color="primary" onClick={this.onDeckInputSubmit.bind(this)} block id='submit-button'>Let's Proxy</Button>
 
+                </Form>
+                <Container md='6' center>
+                    {this.getCardOptionsSelectorComponents()}
+                </Container>
             </Container>
         )
     }

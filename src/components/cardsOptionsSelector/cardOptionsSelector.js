@@ -152,7 +152,7 @@ export class CardOptionsSelector extends React.Component {
             <Card inverse>
                 <CardImg src={cardImageUrl} alt="Card image cap" />
                 <CardImgOverlay>
-                    <h1 body className="text-right"><Badge pill>X{this.props.quantity}</Badge></h1>
+                    <h3 body className="text-right"><Badge pill>X{this.props.quantity}</Badge></h3>
                 </CardImgOverlay>
                 <CardFooter>
                     <Row>
