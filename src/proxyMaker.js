@@ -12,25 +12,43 @@ export class ProxyMaker extends React.Component {
         this.languageInput = React.createRef()
 
         this.cardOptionsSelectorComponents = []
+        this.cardsJsonData = []
 
         this.state = {
-            cardList: [],
-            lang: "en"
+            cardNameQuantityDic: [],
+            lang: "en",
+            cardsNotFound: [],
+            cardsToPrint: []
         }
     }
 
-
+    /**
+     * Converts the contents of deck input text area in to an object
+     * that contains data required by  the CArdOptionSelector componenets
+     * 
+     * @param {string} input - Contents of the deck input 
+     * @returns {Array.<Object>} - an array of objects with the structure {oracleId, quantity},
+     *                              one per valid line of text on the input parameter 
+     */
     async getCardNamesQuantityDic(input) {
         let quantity
         let dic = []
+        let notFoundCards = []
         let lines = input.split(/\r?\n/g)
+        let response = {}
         for (let i = 0; i < lines.length; i++) {
             let matches = lines[i].match(/([\s0-9]+)?(\s+x\s+)?([a-zA-Z0-9\s.,'-/]+)$/)
             if (!matches) {
                 continue
             }
-            const response = await Axios.get('https://api.scryfall.com/cards/named?fuzzy=' + matches[3])
-            console.log(matches[1])
+            try {
+                let url = process.env.REACT_APP_LOCAL_API_CARD_DATA_ENDPOINT + matches[3]
+                response = await Axios.get(url)
+            } catch (err) {
+                console.log(err.message)
+                notFoundCards.push(matches[3])
+                continue
+            }
             if (matches[1] === undefined || matches[1].match(/^\s+$/)) {
                 quantity = "1"
             } else {
@@ -38,33 +56,52 @@ export class ProxyMaker extends React.Component {
             }
             dic.push({
                 oracleId: response['data']['oracle_id'],
-                quantity: quantity
+                quantity: quantity,
             })
         }
 
+        this.setState({
+            cardsNotFound: notFoundCards
+        })
         return dic
+    }
+
+    getDataFromCardOptionSelector(currentCardJson, index) {
+        let cardsToPrint = this.state.cardsToPrint
+        cardsToPrint[index] = currentCardJson
+        console.log(cardsToPrint)
+        this.setState({
+            cardsToPrint: cardsToPrint
+        })
     }
 
     async onDeckInputSubmit() {
         let cardNameQuantityDic = await this.getCardNamesQuantityDic(this.deckInput.current.value)
+        this.cardsJsonData = Array.apply(null, Array(cardNameQuantityDic.length))
         this.setState({
-            cardList: cardNameQuantityDic
+            cardNameQuantityDic: cardNameQuantityDic
         })
     }
 
+    /**
+     * Tranform this.state.cardNameQuantotyDic to an usable list of CardOptionsSelector JSX objects
+     */
     getCardOptionsSelectorComponents() {
-        let cardOptionsViewers = this.state.cardList.map((cardDic, index) => {
+        let cardOptionsViewers = this.state.cardNameQuantityDic.map((cardDic, index) => {
             return (
                 <CardOptionsSelector
                     oracleId={cardDic['oracleId']}
                     lang={this.languageInput.current.value}
                     quantity={cardDic['quantity']}
                     class='cardOptionSelector'
+                    parentHandler={this.getDataFromCardOptionSelector.bind(this)}
+                    index={index}
+                    key={index}
                 />
             )
         })
 
-        //Split the cards in chunks of size 'size
+        //Split the cards in chunks of size 'size'
         let arrays = [];
         let size = 5
         while (cardOptionsViewers.length > 0) {
@@ -136,6 +173,7 @@ export class ProxyMaker extends React.Component {
                 <Container md='6' center>
                     {this.getCardOptionsSelectorComponents()}
                 </Container>
+                {this.cardsJsonData}
             </Container>
         )
     }

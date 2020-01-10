@@ -40,6 +40,13 @@ export class CardOptionsSelector extends React.Component {
         this.initialize()
     }
 
+    componentDidUpdate(prevProps, prevState) {
+        if (this.state.currentSelectedCard['id'] !== prevState.currentSelectedCard['id']) {
+            console.log(this.props.key)
+            this.props.parentHandler(this.state.currentSelectedCard, this.props.index)
+        }
+    }
+
     /**
      * Get all the avaliable languages for a given cardList and set, as a JSX <options> for the the language selector input
      * @param {object} cards - cardJson Object, it's structure can be found at https://scryfall.com/docs/api/cards   
