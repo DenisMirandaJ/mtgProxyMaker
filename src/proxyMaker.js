@@ -66,13 +66,29 @@ export class ProxyMaker extends React.Component {
         return dic
     }
 
-    getDataFromCardOptionSelector(currentCardJson, index) {
+    getDataFromCardOptionSelector(currentCardJson, quantity, index) {
         let cardsToPrint = this.state.cardsToPrint
-        cardsToPrint[index] = currentCardJson
-        console.log(cardsToPrint)
+        let cardData = {
+            'quantity': quantity,
+            'cardJson': currentCardJson
+        }
+        cardsToPrint[index] = cardData
         this.setState({
             cardsToPrint: cardsToPrint
         })
+    }
+
+    async downloadDeck() {
+        let response = await Axios.post(
+            'http://localhost:8000/api/build/deck',
+            { cardDic: this.state.cardsToPrint }
+        )
+        console.log(response['data'])
+            const link = document.createElement('a');
+        link.href = 'http://localhost:8000/api/download/' + response['data'][0];
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
     }
 
     async onDeckInputSubmit() {
@@ -86,7 +102,7 @@ export class ProxyMaker extends React.Component {
     /**
      * Tranform this.state.cardNameQuantotyDic to an usable list of CardOptionsSelector JSX objects
      */
-    getCardOptionsSelectorComponents() {
+    getCardsOptionsSelectorComponents() {
         let cardOptionsViewers = this.state.cardNameQuantityDic.map((cardDic, index) => {
             return (
                 <CardOptionsSelector
@@ -171,8 +187,9 @@ export class ProxyMaker extends React.Component {
 
                 </Form>
                 <Container md='6' center>
-                    {this.getCardOptionsSelectorComponents()}
+                    {this.getCardsOptionsSelectorComponents()}
                 </Container>
+                <Button onClick={this.downloadDeck.bind(this)}>Donwload</Button>
                 {this.cardsJsonData}
             </Container>
         )

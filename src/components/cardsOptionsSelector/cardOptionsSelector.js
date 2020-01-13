@@ -52,7 +52,7 @@ export class CardOptionsSelector extends React.Component {
         }
         if (this.state.currentSelectedCard['id'] !== prevState.currentSelectedCard['id']) {
             console.log(this.props.key)
-            this.props.parentHandler(this.state.currentSelectedCard, this.props.index)
+            this.props.parentHandler(this.state.currentSelectedCard, this.props.quantity, this.props.index)
         }
     }
 
