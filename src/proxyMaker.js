@@ -90,7 +90,10 @@ export class ProxyMaker extends React.Component {
         try {
             response = await Axios.post(
                 'http://localhost:8000/api/build/deck',
-                { cardDic: this.state.cardsToPrint }
+                { 
+                    cardDic: this.state.cardsToPrint,
+                    filetype: 'img'
+                }
             )
 
             const link = document.createElement('a');
