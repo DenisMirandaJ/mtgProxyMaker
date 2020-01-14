@@ -121,6 +121,16 @@ export class CardOptionsSelector extends React.Component {
         let currentSelectedCard = cards.find((card) => {
             return card['lang'] === this.props.lang
         })
+        // if cards is not avaliable in the selected language
+        if (currentSelectedCard === undefined) {
+            currentSelectedCard = currentSelectedCard = cards.find((card) => {
+                return card['lang'] === 'en'
+            })
+        }
+        //if card is not avaliable even in english
+        if (currentSelectedCard === undefined) {
+            currentSelectedCard = currentSelectedCard = cards[0]
+        }
         //extract the default initial values for both setSelector and languageSelector from 'currentSelectedCard' 
         let defaultSetOption = currentSelectedCard['set_name']
         let defaultLanguageOption = currentSelectedCard['lang']
