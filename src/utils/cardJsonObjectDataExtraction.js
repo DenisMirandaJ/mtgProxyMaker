@@ -9,15 +9,16 @@ export var getCardNameFromJson = (cardJson) => {
 }
 
 export var getCardImageUrlFromJson = (cardJson, imageQuality) => {
-    if (cardJson === undefined) {
-        return 'https://via.placeholder.com/488x680.png'
+    if (cardJson === undefined || cardJson == null) {
+        return 'https://via.placeholder.com/488x680.png?text=Card+not+found'
     }
-    if (cardJson['card_faces'] != null) {
-        return cardJson['card_faces'][0]['image_uris'][imageQuality]
-    } else if (cardJson['image_uris'] != null) {
+    if (cardJson['image_uris'] != null) {
         return cardJson['image_uris'][imageQuality]
+    } else if (cardJson['card_faces'] != null) {
+        return cardJson['card_faces'][0]['image_uris'][imageQuality]
+    } else {
+        return 'https://via.placeholder.com/488x680.png?text=Card+not+found'
     }
-    return 'https://via.placeholder.com/488x680.png'
 }
 
 export var getCardTypeFromJson = (cardJson) => {

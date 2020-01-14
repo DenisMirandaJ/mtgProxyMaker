@@ -67,6 +67,12 @@ export class ProxyMaker extends React.Component {
         return dic
     }
 
+    /**
+     * Callback passed to CardOptionsSelector to gather it's internal data
+     * @param {object} currentCardJson -- card data, see https://scryfall.com/docs/api/cards
+     * @param {*} quantity -- how many of the card should be printed
+     * @param {*} index -- id of the CardOptionsSelectorObject
+     */
     getDataFromCardOptionSelector(currentCardJson, quantity, index) {
         let cardsToPrint = this.state.cardsToPrint
         let cardData = {
