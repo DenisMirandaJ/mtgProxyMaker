@@ -18,7 +18,8 @@ export class ProxyMaker extends React.Component {
             cardNameQuantityDic: [],
             lang: "en",
             cardsNotFound: [],
-            cardsToPrint: []
+            cardsToPrint: [],
+            isLocalServerDown: false
         }
     }
 
@@ -79,23 +80,34 @@ export class ProxyMaker extends React.Component {
     }
 
     async downloadDeck() {
-        let response = await Axios.post(
-            'http://localhost:8000/api/build/deck',
-            { cardDic: this.state.cardsToPrint }
-        )
-        console.log(response['data'])
+        let response = {}
+        try {
+            response = await Axios.post(
+                'http://localhost:8000/api/build/deck',
+                { cardDic: this.state.cardsToPrint }
+            )
+
             const link = document.createElement('a');
-        link.href = 'http://localhost:8000/api/download/' + response['data'][0];
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
+            link.href = 'http://localhost:8000/api/download/' + response['data'][0];
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            this.setState({
+                isLocalServerDown: false
+            })
+        } catch {
+            this.setState({
+                isLocalServerDown: true
+            })
+        }
     }
 
     async onDeckInputSubmit() {
         let cardNameQuantityDic = await this.getCardNamesQuantityDic(this.deckInput.current.value)
         this.cardsJsonData = Array.apply(null, Array(cardNameQuantityDic.length))
         this.setState({
-            cardNameQuantityDic: cardNameQuantityDic
+            cardNameQuantityDic: cardNameQuantityDic,
+            cardsToPrint: []
         })
     }
 

@@ -11,22 +11,21 @@ export class CardOptionsSelector extends React.Component {
      * @prop {string} props.lang   - desired output language, see https://scryfall.com/docs/api/languages
      * @prop {string} quantity - number of copies of the card
      * 
-     * @state {object} state -- 
+     * @prop {state.object} cardsJson --  list of cards in Json format, see https://scryfall.com/docs/api/cards
+     * @prop {state.object} currentSelectedCard -- card being displayed
+     * @prop {state.Array} avaliableLanguages -- list of avaliable languages for the current selected set, see https://scryfall.com/docs/api/languages
+     * @prop {state.Array} avaliableSets -- list of sets that holds the cards with oracle_id = props.oracleId
+     * @prop {state.string} defaultLanguageOption -- language that should appear by default on the select Input
+     * @prop {state.string} defaultSetOption -- most recent set in avaliable sets
+     * @prop {state.Array} setOptions -- <option> elements displayed by the set Select input
+     * @prop {state.bool} isOracleIdInvalid -- false if no card with the requiered oracle_id was found, true otherwise
      */
     constructor(props) {
         super(props)
-
-        //Arrays that hold the JSX <options> list for th intendedLanguageSelector and setSelector inputs
-        this.avaliableLanguages = []
-        this.avaliableSets = []
-
         //Refs for the current content of the intendedLanguageSelector and setSelector inputs
         this.setSelectorRef = React.createRef()
         this.languageSelectorRef = React.createRef()
         //default value for the language and set input selectors
-        this.defaultLanguageOption = ""
-        this.defaultSetOption = ""
-
         this.state = {
             cardsJson: [],
             currentSelectedCard: {},
@@ -56,6 +55,12 @@ export class CardOptionsSelector extends React.Component {
         }
     }
 
+    /**
+     * 
+     * @param {Array} languages -- Array with the current avaliable languages 
+     * @param {string} currentLanguage
+     * @returns {Array} -- Array with JSX <option> objects, used to populate the language <Select> object
+     */
     generateLanguageSelectOptions(languages, currentLanguage) {
         if (!languages.includes(currentLanguage)) {
             if (!languages.includes('en')) {
@@ -72,6 +77,12 @@ export class CardOptionsSelector extends React.Component {
         return avaliableLanguagesJSX
     }
 
+    /**
+     * 
+     * @param {string} set 
+     * @param {object} cards -- Object with the same structure as this.state.cardsJson 
+     * @returns {Array} -- avaliable languages for the given set
+     */
     getLanguagesInSet(set, cards) {
         let languages = cards.filter((cardJson) => {
             return cardJson['set_name'] === set
@@ -82,29 +93,12 @@ export class CardOptionsSelector extends React.Component {
         return Array.from([...new Set(languages)])
     }
 
-    findCard(cards, lang, set = null) {
-        let currentSelectedCard = cards.find((cardJson) => {
-            return (cardJson['lang'] === lang && cardJson['set_name'] === set)
-        })
-        //if no cards are found, find a car in english
-        if (currentSelectedCard === undefined) {
-            currentSelectedCard = cards.find((cardJson) => {
-                return (cardJson['lang'] === 'en' && cardJson['set_name'] === set)
-            })
-        }
-        //if for some weird reason the card is not avaliable in english, just pick the first one
-        if (currentSelectedCard === undefined) {
-            currentSelectedCard = cards[0]
-        }
-
-        return currentSelectedCard
-    }
-
     /**
+     * This function is called everytime the props change
      * To initialize the component we need to do 3 things:
      * 1.-     fetch the list of cards using the 'oracleId' prop
      * 2.-     select the card from the list that will selected by default using the 'lang' prop
-     * 3.-     obtain the list of avaliable languages and sets and populate the setSelector and 
+     * 3.-     obtain the list of avaliable languages and sets needed populate the setSelector and 
      *         languageSelector inputs with that data
      */
     async initialize() {
@@ -120,15 +114,20 @@ export class CardOptionsSelector extends React.Component {
         let sets = cards.map((cardJson) => {
             return cardJson['set_name']
         })
+        //removing duplicates
         sets = Array.from([...new Set(sets)])
+
+        //find the most recent card with lang == this.props.lang, order is ensured by the local API
         let currentSelectedCard = cards.find((card) => {
             return card['lang'] === this.props.lang
         })
         //extract the default initial values for both setSelector and languageSelector from 'currentSelectedCard' 
         let defaultSetOption = currentSelectedCard['set_name']
         let defaultLanguageOption = currentSelectedCard['lang']
+        //get the avaliable languages for the chosen set
         let avaliableLanguages = this.getLanguagesInSet(defaultSetOption, cards)
 
+        //generate the JSX <option> array needed by the set select input
         let setOptions = sets.map((set, index) => {
             if (set == defaultSetOption) {
                 return <option key={index} selected>{set}</option>
@@ -136,6 +135,7 @@ export class CardOptionsSelector extends React.Component {
             return <option key={index}>{set}</option>
         })
 
+        //setting the initial state
         this.setState({
             cardsJson: cards,
             currentSelectedCard: currentSelectedCard,
@@ -153,9 +153,13 @@ export class CardOptionsSelector extends React.Component {
      * Update this.state.currentSelectedCard, using the current values of the set and language selector inputs 
      */
     updateCurrentSelectedCard() {
+        //extarct value from the select inputs
         let selectedSet = this.setSelectorRef.current.value
         let selectedLang = this.languageSelectorRef.current.value
+
+        //get the list of avaliable languages in the newly selected set
         let avaliableLanguages = this.getLanguagesInSet(selectedSet, this.state.cardsJson)
+        //Change language if the new set does not have it (English is the default)
         if (!avaliableLanguages.includes(selectedLang)) {
             if (!avaliableLanguages.includes('en')) {
                 selectedLang = avaliableLanguages[0]
@@ -163,9 +167,11 @@ export class CardOptionsSelector extends React.Component {
                 selectedLang = 'en'
             }
         }
+        //get the new card to be displayed
         let selectedCard = this.state.cardsJson.find((cardJson) => {
             return cardJson['lang'] === selectedLang && cardJson['set_name'] === selectedSet
         })
+
         this.setState({
             currentSelectedCard: selectedCard,
             avaliableLanguages: avaliableLanguages,
