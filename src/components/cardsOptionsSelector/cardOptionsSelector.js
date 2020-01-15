@@ -2,6 +2,7 @@ import React from 'react';
 import { Card, Input, Label, CardImg, Row, Col, CardFooter, CardImgOverlay, Badge } from 'reactstrap';
 import { getCardImageUrlFromJson } from '../../utils/cardJsonObjectDataExtraction'
 import { fetchCardsByOracleId } from './requests/cardOptionsSelectorRequests'
+import { FaLanguage } from 'react-icons/fa'
 import './cardOptionsSelector.css'
 
 export class CardOptionsSelector extends React.Component {
@@ -25,6 +26,25 @@ export class CardOptionsSelector extends React.Component {
         //Refs for the current content of the intendedLanguageSelector and setSelector inputs
         this.setSelectorRef = React.createRef()
         this.languageSelectorRef = React.createRef()
+        this.languageCodes = {
+            'en': 'English',
+            'es': 'Spanish',
+            'fr': 'French',
+            'de': 'German',
+            'it': 'Italian',
+            'pt': 'Portuguese',
+            'ja': 'Japanese',
+            'ko': 'Korean',
+            'ru': 'Russian',
+            'zhs': 'Chinese Simplified',
+            'zht': 'Chinese Traditional',
+            'he': 'Hebrew',
+            'la': 'Latin',
+            'grc': 'Ancient Greek',
+            'ar': 'Arabic',
+            'sa': 'Sanskrit',
+            'px': 'Phyrexian'
+        }
         //default value for the language and set input selectors
         this.state = {
             cardsJson: [],
@@ -69,9 +89,9 @@ export class CardOptionsSelector extends React.Component {
         }
         let avaliableLanguagesJSX = Array.from([...new Set(languages)]).map((lang, index) => {
             if (lang === currentLanguage) {
-                return <option key={index} selected>{lang}</option>
+                return <option value={lang} key={index} selected>{this.languageCodes[lang]}</option>
             }
-            return <option key={index}>{lang}</option>
+            return <option value={lang} key={index}>{this.languageCodes[lang]}</option>
         })
 
         return avaliableLanguagesJSX
@@ -191,7 +211,7 @@ export class CardOptionsSelector extends React.Component {
 
     render() {
         let languageOptionsJSX = this.generateLanguageSelectOptions.call(this, this.state.avaliableLanguages, this.state.defaultLanguageOption)
-        let cardImageUrl = getCardImageUrlFromJson(this.state.currentSelectedCard, "small")
+        let cardImageUrl = getCardImageUrlFromJson(this.state.currentSelectedCard, "normal")
         return (
             <Card inverse>
                 <CardImg src={cardImageUrl} alt="Card image cap" />
@@ -217,7 +237,7 @@ export class CardOptionsSelector extends React.Component {
                     </Row>
                     <Row>
                         <Col xs='auto'>
-                            <Label for="setSelector">Language</Label>
+                            <Label for="setSelector"><h4><FaLanguage /></h4></Label>
                         </Col>
                         <Col>
                             <Input

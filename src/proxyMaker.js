@@ -1,5 +1,5 @@
 import React from 'react';
-import { Container, CardGroup, Form, Card, Input, Label, Button } from 'reactstrap'
+import { Container, CardGroup, Form, Card, Input, Label, Button, FormGroup, Row, Col, InputGroup, InputGroupAddon, InputGroupText, CardBody, CardTitle } from 'reactstrap'
 import Axios from 'axios'
 import { CardOptionsSelector } from './components/cardsOptionsSelector/cardOptionsSelector'
 import './css/proxyMaker.css'
@@ -10,6 +10,8 @@ export class ProxyMaker extends React.Component {
 
         this.deckInput = React.createRef()
         this.languageInput = React.createRef()
+        this.printerWidthInput = React.createRef()
+        this.pageSizeInput = React.createRef()
 
         this.cardOptionsSelectorComponents = []
         this.cardsJsonData = []
@@ -19,6 +21,7 @@ export class ProxyMaker extends React.Component {
             lang: "en",
             cardsNotFound: [],
             cardsToPrint: [],
+            selectedFileType: 'pdf',
             isLocalServerDown: false
         }
     }
@@ -85,19 +88,43 @@ export class ProxyMaker extends React.Component {
         })
     }
 
+    handleRadioBtnInput(event) {
+        console.log(event.target.value)
+        this.setState({
+            selectedFileType: event.target.value
+        })
+    }
+
     async downloadDeck() {
         let response = {}
         try {
-            response = await Axios.post(
-                'http://localhost:8000/api/build/deck',
-                { 
-                    cardDic: this.state.cardsToPrint,
-                    filetype: 'img'
-                }
-            )
-
-            const link = document.createElement('a');
-            link.href = 'http://localhost:8000/api/download/' + response['data'][0];
+            if (this.state.selectedFileType === 'img') {
+                response = await Axios.post(
+                    'http://localhost:8000/api/build/deck',
+                    {
+                        cardDic: this.state.cardsToPrint,
+                        filetype: 'img'
+                    }
+                )
+            }
+            else if (this.state.selectedFileType === 'pdf') {
+                response = await Axios.post(
+                    'http://localhost:8000/api/build/deck',
+                    {
+                        cardDic: this.state.cardsToPrint,
+                        filetype: 'pdf',
+                        paperSize: this.pageSizeInput.current.value
+                    }
+                )
+            }
+            const link = document.createElement('a')
+            if (this.state.selectedFileType === 'img') {
+                link.download = 'deck.png'
+                link.href = 'http://localhost:8000/api/download/img/' + response['data'][0];
+            } else if (this.state.selectedFileType === 'pdf') {
+                link.download = 'deck.pdf'
+                link.href = 'http://localhost:8000/api/download/pdf/' + response['data'][0];
+            }
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
@@ -113,7 +140,6 @@ export class ProxyMaker extends React.Component {
 
     async onDeckInputSubmit() {
         let cardNameQuantityDic = await this.getCardNamesQuantityDic(this.deckInput.current.value)
-        this.cardsJsonData = Array.apply(null, Array(cardNameQuantityDic.length))
         this.setState({
             cardNameQuantityDic: cardNameQuantityDic,
             cardsToPrint: []
@@ -164,54 +190,122 @@ export class ProxyMaker extends React.Component {
 
     render() {
         return (
-            <Container style={{ width: '100%' }}>
-                <Form id='deckInput'>
-                    <Label for="deckTextArea"><h3>Enter your decklist</h3></Label>
-                    <Input
-                        type="textarea"
-                        innerRef={this.deckInput}
-                        rows='17'
-                        noresize='true'
-                        placeholder={'4 shock\n3 x Dovin\'s Veto'}
-                        id="deckTextArea"
-                        autoFocus
-                    />
-                    <Label for='languageInput'>
-                        <span>
-                            Language <span className="text-muted">(not all cards are avaliable in every language)</span>
-                        </span>
-                    </Label>
-                    <Input
-                        type='select'
-                        innerRef={this.languageInput}
-                        id='languageInput'
-                    >
-                        <option value='en'>English</option>
-                        <option value='es'>Spanish</option>
-                        <option value='fr'>French</option>
-                        <option value='de'>German</option>
-                        <option value='it'>Italian</option>
-                        <option value='pt'>Portuguese</option>
-                        <option value='ja'>Japanese</option>
-                        <option value='ko'>Korean</option>
-                        <option value='ru'>Russian</option>
-                        <option value='zhs'>Chinese Simplified</option>
-                        <option value='zht'>Chinese Traditional</option>
-                        <option value='he'>Hebrew</option>
-                        <option value='la'>Latin</option>
-                        <option value='grc'>Ancient Greek</option>
-                        <option value='ar'>Arabic</option>
-                        <option value='sa'>Sanskrit</option>
-                        <option value='px'>Phyrexian</option>
-                    </Input>
-                    <Button color="primary" onClick={this.onDeckInputSubmit.bind(this)} block id='submit-button'>Let's Proxy</Button>
+            <Container>
+                <Label><h3>Enter your deck list</h3></Label>
+                <Row>
+                    <Col sm='12' xl='6'>
+                        <Input type="textarea"
+                            innerRef={this.deckInput}
+                            rows='14'
+                            noresize='true'
+                            placeholder={'4 shock\n3 x Dovin\'s Veto'}
+                            id="deckTextArea"
+                            autoFocus
+                        />
+                    </Col>
+                    <Col sm='12' xl='6'>
+                        <Form id='deckOptions'>
+                            <div id='options'>
+                                <Label><b>Print Options</b></Label>
+                                <Label style={{ display: 'block' }}>Download as: <sup><Button color='link'>Help</Button></sup></Label>
+                                <Col>
+                                    <div id='printOptions'>
+                                        <FormGroup id='pdfOptions'>
+                                            <InputGroup size='md'>
+                                                <InputGroupAddon addonType="prepend" id='printOptionsInputGroup' style={{ width: '100%' }}>
+                                                    <InputGroupText style={{ width: '25%' }}>
+                                                        <Label check>
+                                                            <Input addon type="radio" value='pdf' name="options" onChange={this.handleRadioBtnInput.bind(this)} checked={this.state.selectedFileType === 'pdf'} />{' '}
+                                                            {'PDF'}
+                                                        </Label>
+                                                    </InputGroupText>
+                                                    <InputGroupText style={{ width: '40%' }} >
+                                                        <Label check for='pageSizeInput'>Page Size:</Label>
+                                                    </InputGroupText>
+                                                    <Input style={{ width: '35%' }}
+                                                        type='select'
+                                                        innerRef={this.pageSizeInput}
+                                                        id='pageSizeInput'
+                                                        bsSize='md'
+                                                    >
+                                                        <option value='letter'>Letter (215.9 x 279.4 mm)</option>
+                                                        <option value='a4'>A4</option>
+                                                    </Input>
+                                                </InputGroupAddon>
+                                            </InputGroup>
+                                        </FormGroup>
+                                        <FormGroup id='imgOptions'>
+                                            <InputGroup size='md'>
+                                                <InputGroupAddon addonType="prepend" style={{ width: '100%' }}>
+                                                    <InputGroupText style={{ width: '25%' }}>
+                                                        <Label check>
+                                                            <Input addon type="radio" name="options" value="img" onChange={this.handleRadioBtnInput.bind(this)} checked={this.state.selectedFileType === "img"} />{' '}
+                                                            {'PNG'}
+                                                        </Label>
+                                                    </InputGroupText>
+                                                    <InputGroupText style={{ width: '40%' }}>
+                                                        <Label check for='printWidthInput'>Printer width:</Label>
+                                                    </InputGroupText>
+                                                    <Input style={{ width: '22%' }}
+                                                        type='number'
+                                                        innerRef={this.printerWidthInput}
+                                                        id='pageSizeInput'
+                                                        bsSize='md'
+                                                        defaultValue={900}
+                                                    />
+                                                    <InputGroupText style={{ width: '13%' }}>
+                                                        <Label check for='printWidthInput'>mm</Label>
+                                                    </InputGroupText>
+                                                </InputGroupAddon>
+                                            </InputGroup>
+                                        </FormGroup>
+                                    </div>
+                                </Col>
+                                <Label for='languageInput'>
+                                    <span>
+                                        <b>{'Language '}</b><span className="text-muted"> - not all cards are avaliable in every language  </span>
+                                    </span>
+                                </Label>
+                                <Col>
+                                    <Input
+                                        type='select'
+                                        innerRef={this.languageInput}
+                                        id='languageInput'
+                                    >
+                                        <option value='en'>English</option>
+                                        <option value='es'>Spanish</option>
+                                        <option value='fr'>French</option>
+                                        <option value='de'>German</option>
+                                        <option value='it'>Italian</option>
+                                        <option value='pt'>Portuguese</option>
+                                        <option value='ja'>Japanese</option>
+                                        <option value='ko'>Korean</option>
+                                        <option value='ru'>Russian</option>
+                                        <option value='zhs'>Chinese Simplified</option>
+                                        <option value='zht'>Chinese Traditional</option>
+                                        <option value='he'>Hebrew</option>
+                                        <option value='la'>Latin</option>
+                                        <option value='grc'>Ancient Greek</option>
+                                        <option value='ar'>Arabic</option>
+                                        <option value='sa'>Sanskrit</option>
+                                        <option value='px'>Phyrexian</option>
+                                    </Input>
 
-                </Form>
-                <Container md='6' center>
-                    {this.getCardsOptionsSelectorComponents()}
+                                </Col>
+                                <Button color="primary" onClick={this.onDeckInputSubmit.bind(this)} block id='submit-button'>Customise card's art</Button>
+                                <Button color="secondary" onClick={this.downloadDeck.bind(this)} block id='download-button'>Download deck</Button>
+                            </div>
+                        </Form>
+                    </Col>
+                </Row>
+                <Container center>
+                    <Card style={{width: '100%', marginTop: '20px'}}>
+                        <CardTitle style={{marginLeft: '10px'}}><b>Cards options selector</b> <span className="text-muted"> - You can customise card's art and language  </span></CardTitle>
+                        <CardBody>
+                            {this.getCardsOptionsSelectorComponents()}
+                        </CardBody>
+                    </Card>
                 </Container>
-                <Button onClick={this.downloadDeck.bind(this)}>Donwload</Button>
-                {this.cardsJsonData}
             </Container>
         )
     }
